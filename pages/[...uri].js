@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import Link from "next/link";
-
+import Image from "next/image";
 import { client } from "../lib/apolloClient";
 import Layout from "../components/Layout";
 
@@ -8,11 +8,20 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
 
 export default function SinglePost({ post }) {
   const { date, title, content, author, categories } = post;
+  const featuredImage = post.featuredImage?.node;
   const haveCategories = Boolean(categories?.nodes?.length);
 
   return (
     <Layout>
       <article className="blog-post">
+        {featuredImage ? (
+          <Image
+            src={featuredImage.sourceUrl}
+            alt={featuredImage.altText}
+            width={featuredImage.mediaDetails.width}
+            height={featuredImage.mediaDetails.height}
+          />
+        ) : null}
         <h1>{title}</h1>
         <p className="post-meta">
           ✍️ {author.node.name} on {formatDate(date)}
@@ -52,9 +61,19 @@ export function getStaticPaths() {
 const GET_POST = gql`
   query getPostBySlug($uri: ID!) {
     post(id: $uri, idType: URI) {
-      date
       title
+      date
       content
+      featuredImage {
+        node {
+          sourceUrl
+          altText
+          mediaDetails {
+            width
+            height
+          }
+        }
+      }
       author {
         node {
           name
